@@ -11,8 +11,8 @@ from multicolorcaptcha import CaptchaGenerator
 
 from db import SimpleDB
 
-welcome = "Добро пожаловать, @#USER!\nПожалуйста, пройдите проверку, чтобы убедиться, что вы не бот."
-captcha_text = "Добро пожаловать, @#USER!\nЧтобы получить доступ к чату #CHAT\nпожалуйста, введите код, " \
+welcome = "Добро пожаловать, #USER!\nПожалуйста, пройдите проверку, чтобы убедиться, что вы не бот."
+captcha_text = "Добро пожаловать, #USER!\nЧтобы получить доступ к чату #CHAT\nпожалуйста, введите код, " \
                "чтобы убедиться, что вы не бот. "
 try_again = "\n⚠️ : Пожалуйста, попробуйте еще раз!"
 your_code = "\nВаш код: "
@@ -57,9 +57,16 @@ async def send_welcome(message: types.Message):
         InlineKeyboardButton('Пройти проверку',
                              url=link))
     await cmd_readonly(message.chat.id, message.from_user.id)
-    welcome_message = await bot.send_message(text=welcome.replace("#USER", db.get("username")), chat_id=message.chat.id,
+    welcome_message = await bot.send_message(text=welcome.replace("#USER", get_mention(message.from_user)), chat_id=message.chat.id,
                                              reply_markup=inline_kb1)
     db.set("welcome_message_id", welcome_message.message_id)
+
+async def get_mention(user):
+    if user.username:
+        mention = "[@" + user.username + "](tg://user?id=" + str(user.id) + ")"
+    else:
+        mention = "[" +  user.first_name + "](tg://user?id=" + str(user.id) + ")"
+    return mention
 
 @dp.message_handler(commands=["start"])
 async def create_captcha(message: types.Message):
@@ -87,7 +94,7 @@ async def create_captcha(message: types.Message):
     captcha_message = \
         await bot.send_photo(chat_id=message.chat.id,
                              photo=bio,
-                             caption=captcha_text.replace("#USER", db.get("username")).replace("#CHAT",
+                             caption=captcha_text.replace("#USER", get_mention(message.from_user)).replace("#CHAT",
                                                                                                db.get("chatname")),
                              reply_markup=code_input_markup(
                                  user_id=db.get("userid"),

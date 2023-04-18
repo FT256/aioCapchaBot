@@ -7,6 +7,7 @@ from aiogram import executor, Dispatcher, Bot, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.deep_linking import decode_payload
 from aiogram.utils.deep_linking import get_start_link
+import aiogram.utils.markdown as fmd
 from multicolorcaptcha import CaptchaGenerator
 
 from db import SimpleDB

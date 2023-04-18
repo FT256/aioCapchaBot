@@ -12,9 +12,13 @@ from multicolorcaptcha import CaptchaGenerator
 
 from db import SimpleDB
 
-welcome = "Добро пожаловать, #USER'!'\nПожалуйста, пройдите проверку, чтобы убедиться, что вы не бот."
+welcome = "Добро пожаловать, #USER!\nПожалуйста, пройдите проверку, чтобы убедиться, что вы не бот."
 captcha_text = "Добро пожаловать, #USER!\nЧтобы получить доступ к чату #CHAT\nпожалуйста, введите код, " \
                "чтобы убедиться, что вы не бот. "
+solved_captcha_user = "Капча решена.\nДоступ в чат #CHAT разрешен."
+solved_captcha_chat = "#USER решил капчу.\nДоступ в чат разрешен."
+failed_captcha_user = "Вы не смогли решить капчу и были удалены из чата.\nПерезайдите в чат и попробуйте еще раз."
+failed_captcha_chat = "#USER не смог решить капчу и был удален из чата."
 try_again = "\n⚠️ : Пожалуйста, попробуйте еще раз!"
 your_code = "\nВаш код: "
 wrong_user = "❌ : Это не ваша задача!"
@@ -132,13 +136,22 @@ async def callback_captcha(callback: types.CallbackQuery):
         db.set("previous_tries", db.get("previous_tries") + 1)
         if db.get("user_input") == db.get("code"):  # success
             await callback.message.bot.delete_message(chat_id, db.get("welcome_message_id"))
+            await callback.message.bot.send_message(chat_id, text=solved_captcha_chat.replace("#USER", get_mention(message.from_user)))
             await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+            await callback.message.bot.send_message(callback.message.chat.id, text=solved_captcha_user.replace("#USER", message.from_user.first_name).replace("#CHAT",
+                                                                                               db.get("chatname")))
             db.delete()
             await cmd_unreadonly(chat_id, callback.from_user.id)
             return
         if db.get("previous_tries") > max_attempts:  # failed
             await callback.message.bot.delete_message(chat_id, db.get("welcome_message_id"))
+            await callback.message.bot.send_message(chat_id, text=solved_captcha_chat.replace("#USER", get_mention(
+                message.from_user)))
             await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+            await callback.message.bot.send_message(callback.message.chat.id, text=solved_captcha_user.replace("#USER",
+                                                                                                               message.from_user.first_name).replace(
+                "#CHAT",
+                db.get("chatname")))
             db.delete()
             await cmd_kick(chat_id, callback.from_user.id)
             return

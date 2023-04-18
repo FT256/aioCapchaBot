@@ -136,9 +136,9 @@ async def callback_captcha(callback: types.CallbackQuery):
         db.set("previous_tries", db.get("previous_tries") + 1)
         if db.get("user_input") == db.get("code"):  # success
             await callback.message.bot.delete_message(chat_id, db.get("welcome_message_id"))
-            await callback.message.bot.send_message(chat_id, text=solved_captcha_chat.replace("#USER", get_mention(message.from_user)))
+            await callback.message.bot.send_message(chat_id, text=solved_captcha_chat.replace("#USER", get_mention(callback.from_user)))
             await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id)
-            await callback.message.bot.send_message(callback.message.chat.id, text=solved_captcha_user.replace("#USER", message.from_user.first_name).replace("#CHAT",
+            await callback.message.bot.send_message(callback.message.chat.id, text=solved_captcha_user.replace("#CHAT",
                                                                                                db.get("chatname")))
             db.delete()
             await cmd_unreadonly(chat_id, callback.from_user.id)
@@ -146,10 +146,9 @@ async def callback_captcha(callback: types.CallbackQuery):
         if db.get("previous_tries") > max_attempts:  # failed
             await callback.message.bot.delete_message(chat_id, db.get("welcome_message_id"))
             await callback.message.bot.send_message(chat_id, text=solved_captcha_chat.replace("#USER", get_mention(
-                message.from_user)))
+                callback.from_user)))
             await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id)
-            await callback.message.bot.send_message(callback.message.chat.id, text=solved_captcha_user.replace("#USER",
-                                                                                                               message.from_user.first_name).replace(
+            await callback.message.bot.send_message(callback.message.chat.id, text=solved_captcha_user.replace(
                 "#CHAT",
                 db.get("chatname")))
             db.delete()

@@ -57,7 +57,9 @@ async def send_welcome(message: types.Message):
     db.set("username", f"{message.from_user.username}")
     db.set("userid", f"{message.from_user.id}")
     if db.get("welcome_message_id") is not False:
-        await bot.delete_message(message.chat.id, db.get("welcome_message_id"))
+        try:
+          await bot.delete_message(message.chat.id, db.get("welcome_message_id"))
+        except pass
     inline_kb1 = InlineKeyboardMarkup().add(
         InlineKeyboardButton('Пройти проверку',
                              url=link))
